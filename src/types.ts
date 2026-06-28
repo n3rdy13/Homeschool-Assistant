@@ -63,3 +63,33 @@ export interface AttendanceLog {
   createdAt: number;
 }
 
+export interface SubjectWeightConfig {
+  creditHours: number; // e.g. 1.0, 0.5
+  testWeight: number;  // percentage 0-100 (tests + quizzes + homework must = 100)
+  quizWeight: number;
+  homeworkWeight: number;
+}
+
+export interface CourseWeightSettings {
+  id: string;
+  studentId: string;
+  subjects: Record<string, SubjectWeightConfig>; // key = subject name lowercase
+  updatedAt: number;
+}
+
+export type ResourceType = 'link' | 'isbn' | 'file';
+
+export interface StudentResource {
+  id: string;
+  studentId: string;
+  type: ResourceType;
+  title: string;
+  description?: string;
+  url?: string;
+  isbn?: string;
+  fileData?: string; // base64 encoded
+  fileName?: string;
+  fileSize?: number;
+  createdAt: number;
+}
+

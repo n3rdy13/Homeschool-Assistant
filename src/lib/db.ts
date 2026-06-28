@@ -11,7 +11,7 @@ import {
   deleteDoc
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { Student, StudentProgress, GeneratedLesson, StudentSubjectState, AttendanceLog } from "../types";
+import { Student, StudentProgress, GeneratedLesson, StudentSubjectState, AttendanceLog, CourseWeightSettings, StudentResource } from "../types";
 
 // LocalStorage key fallbacks
 const LOCAL_STUDENTS_KEY = "hs_students";
@@ -426,4 +426,90 @@ export async function deleteAttendanceLog(logId: string): Promise<void> {
   const local = getLocalData<AttendanceLog>(LOCAL_ATTENDANCE_KEY);
   const filtered = local.filter((a) => a.id !== logId);
   saveLocalData(LOCAL_ATTENDANCE_KEY, filtered);
+}
+
+// 6. Course Weight Settings
+const LOCAL_WEIGHTS_KEY = "hs_weights";
+
+export async function getCourseWeightSettings(studentId: string): Promise<CourseWeightSettings | null> {
+  try {
+    const docRef = doc(db, "courseWeights", studentId);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data() as CourseWeightSettings;
+    }
+  } catch (error) {
+    console.warn("Firestore offline, reading weights from cache", error);
+  }
+
+  const local = getLocalData<CourseWeightSettings>(LOCAL_WEIGHTS_KEY);
+  return local.find((w) => w.studentId === studentId) ?? null;
+}
+
+export async function saveCourseWeightSettings(settings: CourseWeightSettings): Promise<void> {
+  try {
+    await setDoc(doc(db, "courseWeights", settings.studentId), settings);
+  } catch (error) {
+    console.warn("Firestore offline, saving weights locally", error);
+  }
+
+  const local = getLocalData<CourseWeightSettings>(LOCAL_WEIGHTS_KEY);
+  const filtered = local.filter((w) => w.studentId !== settings.studentId);
+  filtered.push(settings);
+  saveLocalData(LOCAL_WEIGHTS_KEY, filtered);
+}
+
+// 7. Student Resources (Resource Vault)
+const LOCAL_RESOURCES_KEY = "hs_resources";
+
+export async function getStudentResources(studentId: string): Promise<StudentResource[]> {
+  try {
+    const q = query(
+      collection(db, "resources"),
+      where("studentId", "==", studentId),
+      orderBy("createdAt", "desc")
+    );
+    const querySnapshot = await getDocs(q);
+    const results: StudentResource[] = [];
+    querySnapshot.forEach((d) => {
+      results.push({ id: d.id, ...d.data() } as StudentResource);
+    });
+
+    const local = getLocalData<StudentResource>(LOCAL_RESOURCES_KEY);
+    const merged = local.filter((r) => r.studentId !== studentId).concat(results);
+    saveLocalData(LOCAL_RESOURCES_KEY, merged);
+
+    return results;
+  } catch (error) {
+    console.warn("Firestore offline, fetching resources from local storage", error);
+    const local = getLocalData<StudentResource>(LOCAL_RESOURCES_KEY);
+    return local
+      .filter((r) => r.studentId === studentId)
+      .sort((a, b) => b.createdAt - a.createdAt);
+  }
+}
+
+export async function saveStudentResource(resource: StudentResource): Promise<void> {
+  try {
+    await setDoc(doc(db, "resources", resource.id), resource);
+  } catch (error) {
+    console.warn("Firestore offline, saving resource locally", error);
+  }
+
+  const local = getLocalData<StudentResource>(LOCAL_RESOURCES_KEY);
+  const filtered = local.filter((r) => r.id !== resource.id);
+  filtered.push(resource);
+  saveLocalData(LOCAL_RESOURCES_KEY, filtered);
+}
+
+export async function deleteStudentResource(resourceId: string): Promise<void> {
+  try {
+    await deleteDoc(doc(db, "resources", resourceId));
+  } catch (error) {
+    console.warn("Firestore offline, deleting resource locally", error);
+  }
+
+  const local = getLocalData<StudentResource>(LOCAL_RESOURCES_KEY);
+  const filtered = local.filter((r) => r.id !== resourceId);
+  saveLocalData(LOCAL_RESOURCES_KEY, filtered);
 }

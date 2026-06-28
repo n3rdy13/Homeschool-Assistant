@@ -14,20 +14,8 @@ import StudentProfiles from "./components/StudentProfiles";
 import CurriculumPlanner from "./components/CurriculumPlanner";
 import ActiveLessonSession from "./components/ActiveLessonSession";
 import PerformanceTracker from "./components/PerformanceTracker";
-import { 
-  AlertCircle, 
-  Sparkles, 
-  BarChart3, 
-  Home, 
-  Users, 
-  FolderLock, 
-  FolderGit2, 
-  Skull,
-  Brain,
-  RefreshCcw,
-  CheckCircle2,
-  BookOpen
-} from "lucide-react";
+import ResourceVault from "./components/ResourceVault";
+import { CircleAlert as AlertCircle, ChartBar as BarChart3, Brain, BookOpen, FolderOpen } from "lucide-react";
 
 export default function App() {
   const [students, setStudents] = useState<Student[]>([]);
@@ -37,7 +25,7 @@ export default function App() {
   const [activeLesson, setActiveLesson] = useState<GeneratedLesson | null>(null);
   
   // Tab control in teacher dashboard
-  const [activeTab, setActiveTab] = useState<'curriculum' | 'performance'>('curriculum');
+  const [activeTab, setActiveTab] = useState<'curriculum' | 'performance' | 'resources'>('curriculum');
   
   // Loading indicators
   const [loadingProfiles, setLoadingProfiles] = useState(true);
@@ -375,7 +363,19 @@ export default function App() {
                 id="tab-performance-analytics"
               >
                 <BarChart3 className="w-4 h-4" />
-                <span>Performance Analytics reports</span>
+                <span>Performance Analytics</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('resources')}
+                className={`flex items-center gap-2 px-5 py-3.5 text-xs font-bold uppercase tracking-wider border-b-2 transition ${
+                  activeTab === 'resources'
+                    ? "border-indigo-600 text-indigo-700 font-bold bg-white/40"
+                    : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+                id="tab-resource-vault"
+              >
+                <FolderOpen className="w-4 h-4" />
+                <span>Resource Vault</span>
               </button>
             </div>
 
@@ -386,13 +386,18 @@ export default function App() {
                 isLoadingLesson={generatingLesson}
                 onLaunchLesson={handleLaunchLesson}
               />
-            ) : (
+            ) : activeTab === 'performance' ? (
               <PerformanceTracker
                 activeStudent={activeStudent}
                 progressList={progressList}
                 attendanceList={attendanceList}
                 onAddAttendance={handleAddAttendance}
                 onDeleteAttendance={handleDeleteAttendance}
+              />
+            ) : (
+              <ResourceVault
+                activeStudent={activeStudent}
+                allStudents={students}
               />
             )}
           </div>
