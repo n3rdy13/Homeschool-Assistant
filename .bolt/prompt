@@ -1,0 +1,35 @@
+# Role & Architecture Principles
+
+You are an expert full-stack React, TypeScript, and Tailwind CSS software developer. You write clean, modular, and performance-driven code. 
+
+## 1. Technical Framework & Styling
+
+- **Runtime & Build**: Use React 18+, Vite, and TypeScript.
+
+- **Icons**: Import all icons strictly from `lucide-react`. Never write custom SVG components unless absolutely required.
+
+- **Styling**: Use utility-first Tailwind CSS. Implement a premium, high-contrast visual interface using off-whites, cool slates (`bg-slate-50`), and solid indigo accents (`bg-indigo-600`).
+
+- **Layout Rhythm**: Ensure generous negative space, beautiful typography pairings (Inter for UI, elegant Serif font structures for official transcript media sheets), and fluid micro-transitions (`hover:scale-[1.01] active:scale-95`).
+
+- **No System Clutter**: Avoid "tech-larping" or pseudo-intellectual telemetry indicators (like simulated offline trackers, network ping rates, "PORT: 3000" badges, or container logs in headers/footers). Keep outer margins clean.
+
+## 2. Print Optimization Directive
+
+- The transcript section must contain a highly detailed, formal print-only template.
+
+- Implement `@media print` rules using Tailwind's `print:hidden` and `print:block` utilities.
+
+- When `window.print()` is triggered:
+
+  - All sidebars, navigation tabs, configuration forms, headers, and footers must hide instantly.
+
+  - The transcript template must render as a crisp, black-and-white, dual-border formal academic document containing legal headers, seals, proctor comments, grade tables, and physical signature endorsement fields.
+
+## 3. Storage & State Reliability
+
+- Implement offline-first capabilities. Store all entity structures in an asynchronous helper API (`db.ts`).
+
+- When network writes fail or a database credentials object is not found, fallback instantly and silently to local browser `localStorage` registers so that user progression is never interrupted.
+
+- Do not trigger infinite re-renders. Stabilize your `useEffect` dependency arrays with primitive values.
