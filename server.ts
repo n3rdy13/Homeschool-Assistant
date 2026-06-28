@@ -120,7 +120,7 @@ Rules:
 - Return only raw JSON with no commentary.`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         config: { temperature: 0.4 },
       });
@@ -205,7 +205,7 @@ Rules:
 - Return ONLY a JSON array, no extra text.`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         config: { temperature: 0.2 },
       });
@@ -274,7 +274,7 @@ Return ONLY a JSON object with no extra text:
 }`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         config: { temperature: 0.3 },
       });
@@ -323,7 +323,7 @@ Return ONLY a JSON object with no extra text:
       const systemInstruction = `You are "Coach Dave", an elite homeschool academic tutor. You help parents and students understand lesson material, answer questions about subjects, and provide encouragement. Be warm, clear, and concise.`;
 
       const chat = ai.chats.create({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         history: formattedHistory,
         config: { systemInstruction, temperature: 0.7 },
       });
