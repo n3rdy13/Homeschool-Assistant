@@ -46,12 +46,7 @@ async function startServer() {
   let ai: GoogleGenAI | null = null;
 
   if (geminiApiKey) {
-    ai = new GoogleGenAI({
-      apiKey: geminiApiKey,
-      httpOptions: {
-        headers: { "User-Agent": "aistudio-build" },
-      },
-    });
+    ai = new GoogleGenAI({ apiKey: geminiApiKey });
   }
 
   // ─────────────────────────────────────────────────
