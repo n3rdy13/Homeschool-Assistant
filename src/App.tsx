@@ -26,11 +26,24 @@ export default function App() {
   
   // Tab control in teacher dashboard
   const [activeTab, setActiveTab] = useState<'curriculum' | 'performance' | 'resources'>('curriculum');
-  
+
   // Loading indicators
   const [loadingProfiles, setLoadingProfiles] = useState(true);
   const [generatingLesson, setGeneratingLesson] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const [apiKeyMissing, setApiKeyMissing] = useState(false);
+
+  // Helper: safely parse a fetch Response as JSON regardless of status code
+  async function parseResponseJSON(response: Response): Promise<any> {
+    const text = await response.text();
+    if (!text.trim()) throw new Error("Server returned an empty response.");
+    try {
+      return JSON.parse(text);
+    } catch {
+      // Server may have returned HTML error page
+      throw new Error(`Server returned non-JSON content (status ${response.status}). Check that GEMINI_API_KEY is set in the project Secrets.`);
+    }
+  }
 
   // Load students & progress logs
   const loadData = async () => {
@@ -52,6 +65,11 @@ export default function App() {
 
   useEffect(() => {
     loadData();
+    // Check if API key is configured
+    fetch("/api/health")
+      .then((r) => r.json())
+      .then((data) => { if (!data.hasAPIKey) setApiKeyMissing(true); })
+      .catch(() => {});
   }, []);
 
   // Sync historical reports whenever active student modifies
@@ -140,11 +158,11 @@ export default function App() {
       });
 
       if (!response.ok) {
-        const err = await response.json();
+        const err = await parseResponseJSON(response).catch((e) => ({ error: e.message }));
         throw new Error(err.error || "Generation endpoint refused to process.");
       }
 
-      const lessonData = await response.json();
+      const lessonData = await parseResponseJSON(response);
       
       const compiledLesson: GeneratedLesson = {
         id: `lesson_${Date.now()}`,
@@ -292,6 +310,17 @@ export default function App() {
           >
             Acknowledge
           </button>
+        </div>
+      )}
+
+      {/* API key missing banner */}
+      {apiKeyMissing && (
+        <div className="bg-rose-600 px-6 py-3 text-center text-white flex items-center justify-center gap-2 text-xs font-semibold print:hidden">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>
+            <strong>GEMINI_API_KEY is not set.</strong> Lesson generation is disabled. Add your key to the project Secrets (GEMINI_API_KEY) to enable AI features.
+          </span>
+          <button onClick={() => setApiKeyMissing(false)} className="ml-2 underline hover:text-rose-200">Dismiss</button>
         </div>
       )}
 
