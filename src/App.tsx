@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import { Student, StudentProgress, GeneratedLesson, StudentSubjectState, AttendanceLog } from "./types";
-import { 
-  getStudents, 
-  getStudentProgressHistory, 
-  saveProgress, 
-  saveGeneratedLesson, 
+import {
+  getStudents,
+  getStudentProgressHistory,
+  saveProgress,
+  saveGeneratedLesson,
   updateStudentSubjectState,
   getStudentAttendanceHistory,
   saveAttendanceLog,
-  deleteAttendanceLog
+  deleteAttendanceLog,
+  deleteStudent
 } from "./lib/db";
 import StudentProfiles from "./components/StudentProfiles";
 import CurriculumPlanner from "./components/CurriculumPlanner";
@@ -137,6 +138,21 @@ export default function App() {
       await loadAttendanceHistory();
     } catch (e) {
       console.error("Failed to delete attendance log", e);
+    }
+  };
+
+  const handleDeleteStudent = async (studentId: string) => {
+    try {
+      await deleteStudent(studentId);
+      if (activeStudent?.id === studentId) {
+        setActiveStudent(null);
+        setProgressList([]);
+        setAttendanceList([]);
+        setActiveLesson(null);
+      }
+      await loadData();
+    } catch (e) {
+      console.error("Failed to delete student", e);
     }
   };
 
@@ -362,6 +378,7 @@ export default function App() {
             students={students}
             activeStudent={activeStudent}
             onSelectStudent={(student) => setActiveStudent(student)}
+            onDeleteStudent={handleDeleteStudent}
             onRefresh={loadData}
           />
         </div>

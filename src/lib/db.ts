@@ -229,8 +229,38 @@ export async function createStudent(name: string, gradeLevel: string): Promise<S
   const local = getLocalData<Student>(LOCAL_STUDENTS_KEY);
   local.push(newStudent);
   saveLocalData(LOCAL_STUDENTS_KEY, local);
-  
+
   return newStudent;
+}
+
+export async function deleteStudent(studentId: string): Promise<void> {
+  try {
+    await deleteDoc(doc(db, "students", studentId));
+    // Remove associated data
+    const progressQ = query(collection(db, "progress"), where("studentId", "==", studentId));
+    const progressSnap = await getDocs(progressQ);
+    for (const d of progressSnap.docs) await deleteDoc(d.ref);
+
+    const attendanceQ = query(collection(db, "attendance"), where("studentId", "==", studentId));
+    const attendanceSnap = await getDocs(attendanceQ);
+    for (const d of attendanceSnap.docs) await deleteDoc(d.ref);
+
+    const resourcesQ = query(collection(db, "resources"), where("studentId", "==", studentId));
+    const resourcesSnap = await getDocs(resourcesQ);
+    for (const d of resourcesSnap.docs) await deleteDoc(d.ref);
+  } catch (error) {
+    console.warn("Firestore offline, deleting student locally", error);
+  }
+
+  // Purge from all localStorage caches
+  const students = getLocalData<Student>(LOCAL_STUDENTS_KEY);
+  saveLocalData(LOCAL_STUDENTS_KEY, students.filter((s) => s.id !== studentId));
+
+  const progress = getLocalData<StudentProgress>(LOCAL_PROGRESS_KEY);
+  saveLocalData(LOCAL_PROGRESS_KEY, progress.filter((p) => p.studentId !== studentId));
+
+  const attendance = getLocalData<AttendanceLog>(LOCAL_ATTENDANCE_KEY);
+  saveLocalData(LOCAL_ATTENDANCE_KEY, attendance.filter((a) => a.studentId !== studentId));
 }
 
 // 2. Generated Lessons
